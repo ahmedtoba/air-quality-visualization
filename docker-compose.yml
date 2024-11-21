@@ -1,0 +1,25 @@
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+  
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: flask-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=${FLASK_ENV}
+      - FLASK_DEBUG=${FLASK_DEBUG}
+      - MONGO_URI=${MONGO_URI}
+    volumes:
+      - ./backend:/app  # Bind mount for hot reload
+    depends_on:
+      - mongo
