@@ -5,13 +5,13 @@ FROM python:3.13-slim
 WORKDIR /app
 
 # Copy only requirements to cache dependencies
-COPY backend/requirements.txt .
+COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy the application code
-COPY backend .
+COPY . .
 
 # Expose Flask port
 EXPOSE 5000
