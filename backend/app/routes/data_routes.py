@@ -2,16 +2,11 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from flask import request
 from app.logging_config import logger
-
 from app.schemas import AirQualityDataFilterSchema, AirQualityDataResponseSchema, AirQualityDataUploadSchema
 from app.services.data_service import AirQualityService
 
-# Create a Blueprint for air quality routes
 blp = Blueprint("air_quality_routes", "air_quality", url_prefix="/air-quality")
-
-# Initialize the service
 air_quality_service = AirQualityService()
-
 
 @blp.route("")
 class AirQualityListResource(MethodView):

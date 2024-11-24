@@ -7,7 +7,6 @@ from app.logging_config import setup_logger
 from app.middlewares import register_middlewares
 from app.routes import register_blueprints
 from dotenv import load_dotenv
-import logging
 import sys
 
 # Initialize MongoDB
