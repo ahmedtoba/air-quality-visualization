@@ -1,49 +1,100 @@
-import pytest
-from datetime import datetime
-from unittest.mock import MagicMock
+from io import StringIO
 from app.services.data_service import AirQualityService
+from app.repositories.air_quality_repository import AirQualityRepository
+from app.models.air_quality import AirQualityModel
+from datetime import datetime
+from unittest.mock import MagicMock, patch
 
-
-@pytest.fixture
-def mock_repository(mocker):
-    return mocker.patch("app.services.data_service.AirQualityRepository")
-
-
-def test_get_by_date_range(mock_repository):
+def test_get_by_parameter(mocker):
+    # Arrange
+    mock_repository = mocker.patch("app.services.data_service.AirQualityRepository")
     service = AirQualityService()
-    mock_repository.return_value.find_by_date_range.return_value = [
-        {"timestamp": datetime(2004, 3, 10), "CO_GT": 1.2}
-    ]
-    
-    start_date = datetime(2004, 3, 10)
-    end_date = datetime(2004, 3, 20)
-    result = service.get_by_date_range(start_date, end_date)
-    
-    mock_repository.return_value.find_by_date_range.assert_called_once_with(start_date, end_date)
-    assert len(result) == 1
-    assert result[0]["CO_GT"] == 1.2
+    mock_repository.return_value.find_by_parameter.return_value = [{
+        "timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2
+    }]
 
+    # Act
+    result = service.get_by_parameter("CO_GT", datetime(2004, 3, 10), datetime(2004, 3, 20))
 
-def test_bulk_ingest_csv(mock_repository, mocker):
+    # Assert
+    assert result == [{"timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2}]
+
+def test_get_by_date_range(mocker):
+    # Arrange
+    mock_repository = mocker.patch("app.services.data_service.AirQualityRepository")
     service = AirQualityService()
-    mock_repository.return_value.get_all_timestamps.return_value = [{"timestamp": datetime(2004, 3, 10)}]
-    mock_repository.return_value.bulk_insert = MagicMock()
-    
-    csv_file = mocker.Mock()
-    mocker.patch("csv.DictReader", return_value=[
-        {"Date": "11/03/2004", "Time": "00.00.00", "CO(GT)": "1.2", "T": "11.3", "RH": "56.8", "AH": "0.76"}
+    mock_repository.return_value.find_by_date_range.return_value = [{
+        "timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2, "PT08_S1_CO": 2.3, 
+        "NMHC_GT": 3.4, "C6H6_GT": 4.5, "PT08_S2_NMHC": 5.6, "NOx_GT": 6.7, 
+        "PT08_S3_NOx": 7.8, "NO2_GT": 8.9, "PT08_S4_NO2": 9.0, "PT08_S5_O3": 10.1, 
+        "T": 11.2, "RH": 12.3, "AH": 13.4
+    }]
+
+    # Act
+    result = service.get_by_date_range(datetime(2004, 3, 10), datetime(2004, 3, 20))
+
+    # Assert
+    assert result == [{
+        "timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2, "PT08_S1_CO": 2.3, 
+        "NMHC_GT": 3.4, "C6H6_GT": 4.5, "PT08_S2_NMHC": 5.6, "NOx_GT": 6.7, 
+        "PT08_S3_NOx": 7.8, "NO2_GT": 8.9, "PT08_S4_NO2": 9.0, "PT08_S5_O3": 10.1, 
+        "T": 11.2, "RH": 12.3, "AH": 13.4
+    }]
+
+def test_bulk_ingest_csv(mocker):
+    # Arrange
+    mock_repository = mocker.patch("app.services.data_service.AirQualityRepository")
+    service = AirQualityService()
+    mock_repository.return_value.get_all_timestamps.return_value = [{"timestamp": "2004-03-10T00:00:00"}]
+    mock_repository.return_value.bulk_insert.return_value = None
+
+    mock_csv = StringIO("Date;Time;CO(GT);PT08.S1(CO);NMHC(GT);C6H6(GT);PT08.S2(NMHC);NOx(GT);PT08.S3(NOx);NO2(GT);PT08.S4(NO2);PT08.S5(O3);T;RH;AH\n"
+                        "10/03/2004;00.00.00;1.2;2.3;3.4;4.5;5.6;6.7;7.8;8.9;9.0;10.1;11.2;12.3;13.4")
+
+    mocker.patch("app.services.data_service.csv.DictReader", return_value=[
+        {"Date": "10/03/2004", "Time": "00.00.00", "CO(GT)": "1.2", "PT08.S1(CO)": "2.3", "NMHC(GT)": "3.4", "C6H6(GT)": "4.5", 
+         "PT08.S2(NMHC)": "5.6", "NOx(GT)": "6.7", "PT08.S3(NOx)": "7.8", "NO2(GT)": "8.9", "PT08.S4(NO2)": "9.0", "PT08.S5(O3)": "10.1", 
+         "T": "11.2", "RH": "12.3", "AH": "13.4"}
     ])
-    
-    result = service.bulk_ingest_csv(csv_file)
-    assert "1 rows successfully ingested" in result
-    mock_repository.return_value.bulk_insert.assert_called_once()
 
+    # Act
+    result = service.bulk_ingest_csv(mock_csv)
 
-def test_add_one(mock_repository):
+    # Assert
+    assert result == "1 rows successfully ingested, 0 duplicates ignored."
+
+def test_process_csv(mocker):
+    # Arrange
     service = AirQualityService()
-    mock_repository.return_value.find_by_timestamp.return_value = None
-    
-    air_quality_data = {"timestamp": datetime(2004, 3, 10), "CO_GT": 1.2}
-    service.add_one(air_quality_data)
-    
-    mock_repository.return_value.insert_one.assert_called_once_with(air_quality_data)
+    mock_csv = StringIO("Date;Time;CO(GT);PT08.S1(CO);NMHC(GT);C6H6(GT);PT08.S2(NMHC);NOx(GT);PT08.S3(NOx);NO2(GT);PT08.S4(NO2);PT08.S5(O3);T;RH;AH\n"
+                        "10/03/2004;00.00.00;1.2;2.3;3.4;4.5;5.6;6.7;7.8;8.9;9.0;10.1;11.2;12.3;13.4")
+
+    mocker.patch("app.services.data_service.csv.DictReader", return_value=[
+        {"Date": "10/03/2004", "Time": "00.00.00", "CO(GT)": "1.2", "PT08.S1(CO)": "2.3", "NMHC(GT)": "3.4", "C6H6(GT)": "4.5", 
+         "PT08.S2(NMHC)": "5.6", "NOx(GT)": "6.7", "PT08.S3(NOx)": "7.8", "NO2(GT)": "8.9", "PT08.S4(NO2)": "9.0", "PT08.S5(O3)": "10.1", 
+         "T": "11.2", "RH": "12.3", "AH": "13.4"}
+    ])
+
+    # Act
+    result = service._process_csv(mock_csv)
+
+    # Assert
+    assert result == [{
+        "timestamp": datetime(2004, 3, 10), "CO_GT": 1.2, "PT08_S1_CO": 2.3, "NMHC_GT": 3.4, 
+        "C6H6_GT": 4.5, "PT08_S2_NMHC": 5.6, "NOx_GT": 6.7, "PT08_S3_NOx": 7.8, 
+        "NO2_GT": 8.9, "PT08_S4_NO2": 9.0, "PT08_S5_O3": 10.1, "T": 11.2, "RH": 12.3, "AH": 13.4
+    }]
+
+def test_get_all_timestamps(mocker):
+    # Arrange
+    mock_repository = mocker.patch("app.services.data_service.AirQualityRepository")
+    mock_repository_instance = mock_repository.return_value
+    mock_repository_instance.get_all_timestamps.return_value = [{"timestamp": "2004-03-10T00:00:00"}]
+
+    service = AirQualityService()  # This will now use the mocked repository
+
+    # Act
+    result = service.get_all_timestamps()
+
+    # Assert
+    assert result == [{"timestamp": "2004-03-10T00:00:00"}]

@@ -3,6 +3,3 @@ flask-pymongo
 python-dotenv
 flask-smorest
 openpyxl
-pytest
-pytest-mock
-flask-testing

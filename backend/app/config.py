@@ -33,20 +33,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
 
 
-class TestingConfig(Config):
-    """Testing-specific configuration."""
-    TESTING = True
-    MONGO_URI = os.getenv("MONGO_URI_TEST")
-
-
-class ProductionConfig(Config):
-    """Production-specific configuration."""
-    DEBUG = False
-    TESTING = False
-
 # Environment configuration mapping
 config_map = {
-    "development": DevelopmentConfig,
-    "testing": TestingConfig,
-    "production": ProductionConfig,
+    "development": DevelopmentConfig
 }

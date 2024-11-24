@@ -6,7 +6,6 @@ from app.config import config_map
 from app.logging_config import setup_logger
 from app.middlewares import register_middlewares
 from app.routes import register_blueprints
-from dotenv import load_dotenv
 import sys
 
 # Initialize MongoDB

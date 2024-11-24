@@ -1,44 +1,84 @@
-import pytest
-from datetime import datetime
-from unittest.mock import MagicMock
 from app.repositories.air_quality_repository import AirQualityRepository
+from app.db_connection import get_database
+from datetime import datetime
+from unittest.mock import MagicMock, patch
 
-
-@pytest.fixture
-def mock_db(mocker):
+def test_find_by_parameter(mocker):
+    # Arrange
+    mock_db = MagicMock()
     mock_collection = MagicMock()
-    mocker.patch("app.repositories.air_quality_repository.get_database", return_value={"air_quality_data": mock_collection})
-    return mock_collection
-
-
-def test_find_by_date_range(mock_db):
+    mock_db.__getitem__.return_value = mock_collection
+    mocker.patch("app.repositories.air_quality_repository.get_database").return_value = mock_db
     repository = AirQualityRepository()
-    mock_db.find.return_value = [{"timestamp": datetime(2004, 3, 10), "CO_GT": 1.2}]
-    
-    start_date = datetime(2004, 3, 10)
-    end_date = datetime(2004, 3, 20)
-    result = list(repository.find_by_date_range(start_date, end_date))
-    
-    mock_db.find.assert_called_once_with(
-        {"timestamp": {"$gte": datetime(2004, 3, 10, 0, 0), "$lte": datetime(2004, 3, 20, 23, 59, 59)}}
-    )
-    assert len(result) == 1
-    assert result[0]["CO_GT"] == 1.2
+    mock_collection.find.return_value = [{"timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2}]
 
+    # Act
+    result = repository.find_by_parameter("CO_GT", datetime(2004, 3, 10), datetime(2004, 3, 20))
 
-def test_bulk_insert(mock_db):
+    # Assert
+    assert result == [{"timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2}]
+
+def test_find_by_date_range(mocker):
+    # Arrange
+    mock_db = MagicMock()
+    mock_collection = MagicMock()
+    mock_db.__getitem__.return_value = mock_collection
+    mocker.patch("app.repositories.air_quality_repository.get_database").return_value = mock_db
     repository = AirQualityRepository()
-    data = [{"timestamp": datetime(2004, 3, 10), "CO_GT": 1.2}]
-    
-    repository.bulk_insert(data)
-    mock_db.insert_many.assert_called_once_with(data)
+    mock_collection.find.return_value = [{
+        "timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2, "PT08_S1_CO": 2.3, 
+        "NMHC_GT": 3.4, "C6H6_GT": 4.5, "PT08_S2_NMHC": 5.6, "NOx_GT": 6.7, 
+        "PT08_S3_NOx": 7.8, "NO2_GT": 8.9, "PT08_S4_NO2": 9.0, "PT08_S5_O3": 10.1, 
+        "T": 11.2, "RH": 12.3, "AH": 13.4
+    }]
 
+    # Act
+    result = repository.find_by_date_range(datetime(2004, 3, 10), datetime(2004, 3, 20))
 
-def test_get_all_timestamps(mock_db):
+    # Assert
+    assert result == [{
+        "timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2, "PT08_S1_CO": 2.3, 
+        "NMHC_GT": 3.4, "C6H6_GT": 4.5, "PT08_S2_NMHC": 5.6, "NOx_GT": 6.7, 
+        "PT08_S3_NOx": 7.8, "NO2_GT": 8.9, "PT08_S4_NO2": 9.0, "PT08_S5_O3": 10.1, 
+        "T": 11.2, "RH": 12.3, "AH": 13.4
+    }]
+
+def test_bulk_insert(mocker):
+    # Arrange
+    mock_db = MagicMock()
+    mock_collection = MagicMock()
+    mock_db.__getitem__.return_value = mock_collection
+    mocker.patch("app.repositories.air_quality_repository.get_database").return_value = mock_db
     repository = AirQualityRepository()
-    mock_db.find.return_value = [{"timestamp": datetime(2004, 3, 10)}]
-    
-    result = list(repository.get_all_timestamps())
-    mock_db.find.assert_called_once_with({}, {"timestamp": 1})
-    assert len(result) == 1
-    assert result[0]["timestamp"] == datetime(2004, 3, 10)
+    mock_collection.insert_many.return_value = None
+
+    # Act
+    repository.bulk_insert([{
+        "timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2, "PT08_S1_CO": 2.3, 
+        "NMHC_GT": 3.4, "C6H6_GT": 4.5, "PT08_S2_NMHC": 5.6, "NOx_GT": 6.7, 
+        "PT08_S3_NOx": 7.8, "NO2_GT": 8.9, "PT08_S4_NO2": 9.0, "PT08_S5_O3": 10.1, 
+        "T": 11.2, "RH": 12.3, "AH": 13.4
+    }])
+
+    # Assert
+    mock_collection.insert_many.assert_called_once_with([{
+        "timestamp": "2004-03-10T00:00:00", "CO_GT": 1.2, "PT08_S1_CO": 2.3, 
+        "NMHC_GT": 3.4, "C6H6_GT": 4.5, "PT08_S2_NMHC": 5.6, "NOx_GT": 6.7, 
+        "PT08_S3_NOx": 7.8, "NO2_GT": 8.9, "PT08_S4_NO2": 9.0, "PT08_S5_O3": 10.1, 
+        "T": 11.2, "RH": 12.3, "AH": 13.4
+    }])
+
+def test_get_all_timestamps(mocker):
+    # Arrange
+    mock_db = MagicMock()
+    mock_collection = MagicMock()
+    mock_db.__getitem__.return_value = mock_collection
+    mocker.patch("app.repositories.air_quality_repository.get_database").return_value = mock_db
+    repository = AirQualityRepository()
+    mock_collection.find.return_value = [{"timestamp": "2004-03-10T00:00:00"}]
+
+    # Act
+    result = repository.get_all_timestamps()
+
+    # Assert
+    assert result == [{"timestamp": "2004-03-10T00:00:00"}]

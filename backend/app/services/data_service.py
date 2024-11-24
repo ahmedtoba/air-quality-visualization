@@ -18,12 +18,6 @@ class AirQualityService:
         logger.info(f"Getting data from {start_date} to {end_date}")
         return self.repository.find_by_date_range(start_date, end_date)
 
-    def add_one(self, air_quality_data):
-        timestamp = air_quality_data["timestamp"]
-        if self.repository.find_by_timestamp(timestamp):
-            raise ValueError(f"Record with timestamp {timestamp} alreaddy exists.")
-        return self.repository.insert_one(air_quality_data)
-
     def bulk_ingest_csv(self, file):
         data = self._process_csv(file)
 
@@ -43,6 +37,10 @@ class AirQualityService:
 
         for row in reader:
             try:
+                if not row.get("Date") or not row.get("Time"):
+                    logger.error(f"Missing Date or Time in row: {row}")
+                    continue
+
                 parsed_row = AirQualityModel(
                     timestamp=datetime.strptime(f"{row['Date']} {row['Time']}", "%d/%m/%Y %H.%M.%S"),
                     CO_GT=float(row.get("CO(GT)", 0).replace(",", ".")),
@@ -62,7 +60,6 @@ class AirQualityService:
                 csv_data.append(asdict(parsed_row))
             except Exception as e:
                 logger.error(f"Error parsing row: {row}, {e}")
-                continue
 
         return csv_data
 
