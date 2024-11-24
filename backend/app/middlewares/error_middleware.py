@@ -1,7 +1,5 @@
-import logging
 from flask import jsonify
-
-logger = logging.getLogger(__name__)
+from app.logging_config import logger
 
 def setup_error_handling_middleware(app):
     @app.errorhandler(Exception)

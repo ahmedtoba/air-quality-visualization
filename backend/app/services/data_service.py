@@ -1,63 +1,72 @@
-import logging
-import pandas as pd
+from dataclasses import asdict
+from io import TextIOWrapper
+import csv
+from datetime import datetime
+from app.repositories.air_quality_repository import AirQualityRepository
+from app.models.air_quality import AirQualityModel
+from app.logging_config import logger
 
-logger = logging.getLogger(__name__)
 
-def ingest_data(file):
-    from app import mongo
-    try:
-        logger.info("Starting data ingestion.")
-        data = pd.read_excel(file)
-        records = data.to_dict(orient='records')
-        mongo.db.air_quality.insert_many(records)
-        logger.info(f"Ingested {len(records)} records successfully.")
-        return "Data successfully ingested!"
-    except Exception as e:
-        logger.error(f"Error during data ingestion: {e}")
-        raise
+class AirQualityService:
+    def __init__(self):
+        self.repository = AirQualityRepository()
 
-def fetch_data(parameter, start_date, end_date):
-    from app import mongo
-    try:
-        logger.info(f"Fetching data for parameter: {parameter} from {start_date} to {end_date}.")
-        query = {}
-        if start_date and end_date:
-            query["timestamp"] = {"$gte": start_date, "$lte": end_date}
+    def get_by_parameter(self, parameter, start_date, end_date):
+        return self.repository.find_by_parameter(parameter, start_date, end_date)
+    
+    def get_by_date_range(self, start_date, end_date):
+        logger.info(f"Getting data from {start_date} to {end_date}")
+        return self.repository.find_by_date_range(start_date, end_date)
 
-        projection = {"_id": 0}
-        if parameter:
-            projection[parameter] = 1
-            projection["timestamp"] = 1
+    def add_one(self, air_quality_data):
+        timestamp = air_quality_data["timestamp"]
+        if self.repository.find_by_timestamp(timestamp):
+            raise ValueError(f"Record with timestamp {timestamp} alreaddy exists.")
+        return self.repository.insert_one(air_quality_data)
 
-        results = mongo.db.air_quality.find(query, projection)
-        logger.info(f"Fetched {len(results)} records.")
-        return list(results)
-    except Exception as e:
-        logger.error(f"Error during data fetch: {e}")
-        raise
+    def bulk_ingest_csv(self, file):
+        data = self._process_csv(file)
 
-def seed_data():
-    from app import mongo
-    """
-    Seeds the database with initial data from the dataset file if no data exists.
-    """
-    try:
-        # Check if the collection is empty
-        if mongo.db.air_quality.count_documents({}) > 0:
-            logger.info("Database already seeded.")
-            return "Database already seeded."
+        existing_timestamps = set(
+            record["timestamp"] for record in self.repository.get_all_timestamps()
+        )
+        unique_data = [row for row in data if row["timestamp"] not in existing_timestamps]
 
-        # Load dataset from Excel
-        dataset_path = "dataset/AirQualityUCI.xlsx"  # Adjust the path if needed
-        data = pd.read_excel(dataset_path)
+        # Bulk insert unique data
+        self.repository.bulk_insert(unique_data)
+        return f"{len(unique_data)} rows successfully ingested, {len(data) - len(unique_data)} duplicates ignored."
+    
+    def _process_csv(self, file) -> list[dict]:
+        logger.info("Processing CSV file...")
+        csv_data = []
+        reader = csv.DictReader(TextIOWrapper(file, encoding="utf-8"), delimiter=";")
 
-        # Prepare data for MongoDB
-        records = data.to_dict(orient="records")
+        for row in reader:
+            try:
+                parsed_row = AirQualityModel(
+                    timestamp=datetime.strptime(f"{row['Date']} {row['Time']}", "%d/%m/%Y %H.%M.%S"),
+                    CO_GT=float(row.get("CO(GT)", 0).replace(",", ".")),
+                    PT08_S1_CO=float(row.get("PT08.S1(CO)", 0).replace(",", ".")),
+                    NMHC_GT=float(row.get("NMHC(GT)", 0).replace(",", ".")),
+                    C6H6_GT=float(row.get("C6H6(GT)", 0).replace(",", ".")),
+                    PT08_S2_NMHC=float(row.get("PT08.S2(NMHC)", 0).replace(",", ".")),
+                    NOx_GT=float(row.get("NOx(GT)", 0).replace(",", ".")),
+                    PT08_S3_NOx=float(row.get("PT08.S3(NOx)", 0).replace(",", ".")),
+                    NO2_GT=float(row.get("NO2(GT)", 0).replace(",", ".")),
+                    PT08_S4_NO2=float(row.get("PT08.S4(NO2)", 0).replace(",", ".")),
+                    PT08_S5_O3=float(row.get("PT08.S5(O3)", 0).replace(",", ".")),
+                    T=float(row.get("T", 0).replace(",", ".")),
+                    RH=float(row.get("RH", 0).replace(",", ".")),
+                    AH=float(row.get("AH", 0).replace(",", ".")),
+                )
+                csv_data.append(asdict(parsed_row))
+            except Exception as e:
+                logger.error(f"Error parsing row: {row}, {e}")
+                continue
 
-        # Insert data into MongoDB
-        mongo.db.air_quality.insert_many(records)
-        logger.info("Database seeded successfully.")
-        return "Database seeded successfully."
-    except Exception as e:
-        logger.error(f"Error seeding data: {e}")
-        raise Exception(f"Error seeding data: {e}")
+        return csv_data
+
+    def get_all_timestamps(self):
+        return self.repository.get_all_timestamps()
+            
+

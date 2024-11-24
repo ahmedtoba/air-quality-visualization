@@ -1,7 +1,5 @@
-import logging
 from flask import request
-
-logger = logging.getLogger(__name__)
+from app.logging_config import logger
 
 def setup_logging_middleware(app):
     @app.before_request

@@ -1,6 +1,5 @@
 flask
 flask-pymongo
-pandas
 python-dotenv
 flask-smorest
 openpyxl
