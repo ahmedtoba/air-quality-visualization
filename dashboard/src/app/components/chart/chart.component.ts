@@ -53,6 +53,20 @@ export class ChartComponent {
     });
 
     this.options = {
+      dataZoom: [
+        {
+          id: 'dataZoomX',
+          type: 'slider',
+          filterMode: 'filter',
+          xAxisIndex: [0],
+        },
+        {
+          id: 'dataZoomY',
+          type: 'slider',
+          filterMode: 'empty',
+          yAxisIndex: [0],
+        }
+      ],
       legend : {
         data: Object.keys(data),
         align: 'left', 
@@ -63,6 +77,9 @@ export class ChartComponent {
       xAxis: {
         type: 'category',
         data: xAxis,
+        axisLabel: {
+          rotate: 30,
+        },
       },
       yAxis: {
         type: 'value',
