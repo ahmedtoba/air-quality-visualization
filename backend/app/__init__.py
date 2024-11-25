@@ -1,12 +1,13 @@
+import sys
 from pathlib import Path
 from flask import Flask, redirect
 from flask_pymongo import PyMongo
 from flask_smorest import Api
+from flask_cors import CORS
 from app.config import config_map
 from app.logging_config import setup_logger
 from app.middlewares import register_middlewares
 from app.routes import register_blueprints
-import sys
 
 # Initialize MongoDB
 mongo = PyMongo()
@@ -30,6 +31,9 @@ def create_app():
 
     # Register routes
     register_blueprints(api)
+
+    # enable CORS
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Recognize app directory as a known module
     sys.path.append(str(Path(__file__).resolve().parent))

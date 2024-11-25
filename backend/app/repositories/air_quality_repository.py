@@ -1,6 +1,5 @@
 from datetime import datetime
 from app.db_connection import get_database
-from app.models.air_quality import AirQualityModel
 
 class AirQualityRepository:
     def __init__(self):

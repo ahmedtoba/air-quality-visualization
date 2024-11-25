@@ -14,7 +14,7 @@ services:
     volumes:
       - mongo_data:/data/db
     command: ["mongod", "--quiet"]
-    
+
   backend:
     build: ./backend
     container_name: air_quality_backend
@@ -28,6 +28,21 @@ services:
       - .env
     volumes:
       - ./backend:/app
+
+  dashboard:
+    image: node:22.11-alpine
+    container_name: air_quality_dashboard
+    depends_on:
+      - backend
+    ports:
+      - "${DASHBOARD_PORT}:3000"
+    volumes:
+      - ./dashboard:/usr/src/dashboard
+    working_dir: /usr/src/dashboard
+    networks:
+      - app_network
+    command: >
+      sh -c "npm install && npx ng serve --host 0.0.0.0 --port 3000 --poll 2000"
 
 networks:
   app_network:

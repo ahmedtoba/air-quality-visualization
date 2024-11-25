@@ -1,0 +1,64 @@
+<div class="container">
+  <div class="card my-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <div class="">
+          <h4 class="card-title mb-0" id="traffic">Air Quality Data Visualization</h4>
+          <div class="small text-body-primary mb-5">
+            <span>{{filters.startDate | date}} </span>
+            <span>&nbsp; - &nbsp;</span>
+            <span> {{filters.endDate | date }} </span>
+          </div>
+        </div>
+        <div class="d-none d-md-block">
+          <form [formGroup]="chartTypeButtonGroup">
+            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+              <input class="btn-check" formControlName="chartType" type="radio" value="line" id="dayRadio" checked />
+              <label (click)="setChartType('line')" class="btn btn-outline-primary" for="dayRadio">
+                Line
+              </label>
+              <input class="btn-check" formControlName="chartType" type="radio" value="bar" id="radioMonth" />
+              <label (click)="setChartType('bar')" class="btn btn-outline-primary" for="radioMonth">
+                Bar
+              </label>
+            </div>
+          </form>
+        </div>
+      </div>
+      <app-chart [xAxisData]="xAxisData()" [yAxisSeries]="yAxisSeries()" [chartType]="chartType()">
+      </app-chart>
+    </div>
+  </div>
+
+  <div class="card my-4">
+    <div class="card-body">
+      <h5 class="card-title text-center">Filters</h5>
+      <form [formGroup]="dataFilters">
+        <div class="row">
+          <div class="col">
+            <label>Start Date</label>
+            <input type="date" class="form-control" formControlName="startDate" data-date-format="dd-mm-yyyy" value="2004-03-10" />
+          </div>
+          <div class="col">
+            <label>End Date</label>
+            <input type="date" class="form-control" formControlName="endDate" data-date-format="dd-mm-yyyy" value="2004-03-15" />
+          </div>
+          <div class="col">
+            <label for="parameter">Parameter</label>
+            <select id="parameter" formControlName="parameter" class="form-select">
+              <option value="" disabled>Select a parameter ...</option>
+              @for (parameter of parameters; track parameter){
+              <option [value]="parameter">{{parameter}}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="text-center mt-3">
+          <button (click)="getData()" class="btn btn-primary" type="button">
+            Apply Filters
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
