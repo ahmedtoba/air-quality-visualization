@@ -5,7 +5,7 @@ from app.logging_config import logger
 from app.schemas import AirQualityDataFilterSchema, AirQualityDataResponseSchema, AirQualityDataUploadSchema
 from app.services.data_service import AirQualityService
 
-blp = Blueprint("air_quality_routes", "air_quality", url_prefix="/air-quality")
+blp = Blueprint("air_quality_routes", "air_quality")
 air_quality_service = AirQualityService()
 
 @blp.route("")

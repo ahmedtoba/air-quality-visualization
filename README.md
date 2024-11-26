@@ -9,25 +9,7 @@ A full-stack application for visualizing air quality data. This project includes
 ---
 
 ## **Project Architecture**
-
-```
-+----------------+        +----------------+        +----------------+
-|                |        |                |        |                |
-|   Frontend     |<------>|    Backend     |<------>|   MongoDB      |
-|  (Angular 19)  |        |  (Flask API)   |        | (NoSQL DB)     |
-|                |        |                |        |                |
-+----------------+        +----------------+        +----------------+
-         |
-         | (Dockerized Services)
-         |
-+----------------+
-|                |
-|  Docker Compose|
-|  for Orchestration |
-|                |
-+----------------+
-```
-
+![Project Architecture](snapshots/image-5.png)
 ---
 
 ## **Technologies Used**
@@ -35,8 +17,7 @@ A full-stack application for visualizing air quality data. This project includes
 ### **Frontend (Angular 19)**
 - **Framework:** Angular 19 (LTS)
 - **Features:** 
-  - Interactive charts using a charting library (e.g., Chart.js).
-  - Responsive design for various screen sizes.
+  - Interactive charts using a charting library (ngx-Echarts).
   - Modern Angular features like standalone components and signals.
 - **Development Environment:** Node.js 22.11-alpine.
 
@@ -140,13 +121,14 @@ Here are some snapshots of the API documentation:
 #### **Available Endpoints**
 | Endpoint                        | Method | Description                                    |
 |---------------------------------|--------|------------------------------------------------|
-| `/air-quality`                  | `GET`  | Fetch air quality data for a date range.       |
-| `/air-quality/<parameter>`      | `GET`  | Fetch data for a specific parameter.           |
-| `/air-quality/ingest_data`      | `POST` | Bulk upload air quality data via CSV.          |
+| `/api/air-quality`                  | `GET`  | Fetch api/air quality data for a date range.       |
+| `/api/air-quality/<parameter>`      | `GET`  | Fetch data for a specific parameter.           |
+| `/api/air-quality/ingest_data`      | `POST` | Bulk upload air quality data via CSV.          |
 
 #### **Request Example**
 ```bash
-curl -X GET "http://localhost:5000/air-quality?start_date=2023-01-01&end_date=2023-01-31"
+curl -X 'GET' "http://localhost:5000/api/air-quality?start_date=20-10-2004&end_date=30-10-2004" \ 
+    -H 'accept: application/json'
 ```
 
 #### **Response Example**
@@ -164,7 +146,7 @@ curl -X GET "http://localhost:5000/air-quality?start_date=2023-01-01&end_date=20
 
 ### **Data Ingestion**
 #### **Upload Data via CSV**
-- Upload air quality data in bulk using the `/air-quality/ingest_data` endpoint.
+- Upload air quality data in bulk using the `/api/air-quality/ingest_data` endpoint.
 - Use the Swagger UI for easy data upload.
 - **CSV File:** Sample CSV file is available at `backend/dataset/AirQualityUCI.csv`.
 
