@@ -1,7 +1,3 @@
-Here’s a structured and professional README file template for your project. It includes all the requested details and is designed to be comprehensive and visually appealing.
-
----
-
 # Air Quality Visualization Project
 
 A full-stack application for visualizing air quality data. This project includes a backend service for data management and a frontend dashboard for interactive data visualization.
