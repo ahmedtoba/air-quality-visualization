@@ -27,6 +27,7 @@ A full-stack application for visualizing air quality data. This project includes
 - **Documentation:** API documented using Swagger (OpenAPI 3.0.3).
 - **Database Interaction:** PyMongo.
 - **Environment Variables:** Configured via `.env` file.
+- **Unit Testing:** Pytest for unit testing.
 
 ### **Database (MongoDB)**
 - **Type:** NoSQL Database.
@@ -100,6 +101,12 @@ Here are some snapshots of the API documentation:
    - **Backend API:** [http://localhost:5000](http://localhost:5000)
    - **Frontend Dashboard:** [http://localhost:3000](http://localhost:3000)
 
+3. **Run Backend Unit Tests 'Optional'**
+   - Get into backend folder and run the following command on terminal.
+   - Make sure the packages in requirements_test.txt are installed.
+   ```
+      pytest tests/
+   ```
 ---
 
 ## **How to Use**
@@ -137,8 +144,29 @@ curl -X 'GET' "http://localhost:5000/api/air-quality?start_date=20-10-2004&end_d
     {
         "timestamp": "2023-01-01T00:00:00",
         "CO_GT": 1.2,
-        "Benzene": 0.5,
-        "NO2": 2.3
+        "PT08_S1_CO": 1000,
+        "NMHC_GT": 200,
+        "C6H6_GT": 10,
+        "PT08_S2_NMHC": 1000,
+        "NOx_GT": 100,
+        "PT08_S3_NOx": 1000,
+        "NO2_GT": 100,
+        "PT08_S4_NO2": 1000,
+        "PT08_S5_O3": 1000,
+        "T": 20,
+        "RH": 50,
+        "AH": 1
+    },
+    ...
+]
+```
+
+**If we are filtering by parameters the reponse will be like:**
+```json
+[
+    {
+        "timestamp": "2023-01-01T00:00:00",
+        "value": 1.2
     },
     ...
 ]
@@ -149,12 +177,6 @@ curl -X 'GET' "http://localhost:5000/api/air-quality?start_date=20-10-2004&end_d
 - Upload air quality data in bulk using the `/api/air-quality/ingest_data` endpoint.
 - Use the Swagger UI for easy data upload.
 - **CSV File:** Sample CSV file is available at `backend/dataset/AirQualityUCI.csv`.
-
----
-
-## **Contributing**
-
-We welcome contributions to improve this project. Please fork the repository and create a pull request.
 
 ---
 
