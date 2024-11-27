@@ -125,7 +125,7 @@ Here are some snapshots of the API documentation:
 | Endpoint                        | Method | Description                                    |
 |---------------------------------|--------|------------------------------------------------|
 | `/api/air-quality`                  | `GET`  | Fetch api/air quality data for a date range.       |
-| `/api/air-quality/<parameter>`      | `GET`  | Fetch data for a specific parameter.           |
+| `/api/air-quality/paramters`        | `GET`  | Fetch data for a specific parameters           |
 | `/api/air-quality/ingest_data`      | `POST` | Bulk upload air quality data via CSV.          |
 
 #### **Request Example**
@@ -157,12 +157,13 @@ curl -X 'GET' "http://localhost:5000/api/air-quality?start_date=20-10-2004&end_d
 ]
 ```
 
-**If we are filtering by parameters the reponse will be like:**
+**If we are filtering by specific parameters the reponse will be like:**
 ```json
 [
     {
         "timestamp": "2023-01-01T00:00:00",
-        "value": 1.2
+        "NMHC_GT": 1.2,
+        "C6H6_GT": 1000,
     },
     ...
 ]

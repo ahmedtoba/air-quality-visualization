@@ -27,3 +27,8 @@ class AirQualityDataUploadSchema(Schema):
 class AirQualityDataFilterSchema(Schema):
     start_date = fields.Date(required=True, description="Start date for the query (DD-MM-YYYY)", format="%d-%m-%Y")
     end_date = fields.Date(required=True, description="End date for the query (DD-MM-YYYY)", format="%d-%m-%Y")
+
+class AirQualityDataParametersFilterSchema(Schema):
+    start_date = fields.Date(required=True, description="Start date for the query (DD-MM-YYYY)", format="%d-%m-%Y")
+    end_date = fields.Date(required=True, description="End date for the query (DD-MM-YYYY)", format="%d-%m-%Y")
+    parameters = fields.List(fields.String(), required=True, description="List of air quality parameters to filter by")

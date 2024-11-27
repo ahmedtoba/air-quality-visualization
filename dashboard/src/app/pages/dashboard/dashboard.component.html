@@ -44,12 +44,12 @@
             <input type="date" class="form-control" formControlName="endDate" data-date-format="dd-mm-yyyy" value="2004-03-15" />
           </div>
           <div class="col">
-            <label for="parameter">Parameter</label>
-            <select id="parameter" formControlName="parameter" class="form-select">
-              <option value="" disabled>Select a parameter ...</option>
+            <label for="parameter">Parameters</label>
+            <select id="parameter" formControlName="parameters" multiple class="form-select" tabindex="null">
+              <option value="" disabled>Select parameters ...</option>
               @for (parameter of parameters; track parameter){
               <option [value]="parameter">{{parameter}}</option>
-              }
+                }
             </select>
           </div>
         </div>

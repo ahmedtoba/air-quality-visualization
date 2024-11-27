@@ -1,16 +1,23 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ChartComponent } from "../../components/chart/chart.component";
 import { CommonModule } from '@angular/common';
 import { AirQualityData } from '../../models/air-quality-data.model';
-import { AirQualityDataByParamter } from '../../models/air-quality-data-by-paramter.model';
 import { DataServiceService } from '../../services/data-service.service';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ReactiveFormsModule, ChartComponent, CommonModule],
+  imports: [
+    ReactiveFormsModule, 
+    ChartComponent, 
+    CommonModule, 
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
+  providers: [
+    provideNativeDateAdapter(),
+  ],
 })
 export class DashboardComponent {
   parameters = ['CO_GT', 'PT08_S1_CO', 'NMHC_GT', 'C6H6_GT', 'PT08_S2_NMHC', 'NOX_GT', 'PT08_S3_NOx', 'NO2_GT', 'PT08_S4_NO2', 'PT08_S5_O3', 'T', 'RH', 'AH'];
@@ -22,15 +29,21 @@ export class DashboardComponent {
 
   dataService = inject(DataServiceService);
   
-  public chartTypeButtonGroup = new FormGroup({
-    chartType: new FormControl('line')
-  });
+  public chartTypeButtonGroup: FormGroup;
 
-  public dataFilters = new FormGroup({
-    startDate: new FormControl(),
-    endDate: new FormControl(),
-    parameter: new FormControl(''),
-  });
+  public dataFilters: FormGroup;
+
+  constructor() {
+    this.dataFilters = new FormGroup({
+      startDate: new FormControl('', Validators.required),
+      endDate: new FormControl('', Validators.required),
+      parameters: new FormControl([]),
+    });
+
+    this.chartTypeButtonGroup = new FormGroup({
+      chartType: new FormControl('line'),
+    });
+  }
 
   ngOnInit(): void {
     this.initFilters();
@@ -43,22 +56,18 @@ export class DashboardComponent {
     });
   }
 
-  upadteAxisData(data: AirQualityData[] | AirQualityDataByParamter[]): void {
+  upadteAxisData(data: AirQualityData[]): void {
     if (!data.length) return;
 
     const xAxis = data.map((d) => d.timestamp);
     const yAxis : {
       [key: string]: any[];
     } = {};
-    // @ts-ignore
-    if (data.value) { yAxis[data.parameter] = data.map((d) => d.value); }
-    else {
-      const parameters = Object.keys(data[0]).filter((key) => key !== 'timestamp');
-      parameters.forEach((param) => {
-        // @ts-ignore
-        yAxis[param] = data.map((d) => d[param]);
-      });      
-    }
+    const parameters = Object.keys(data[0]).filter((key) => key !== 'timestamp');
+    parameters.forEach((param) => {
+      // @ts-ignore
+      yAxis[param] = data.map((d) => d[param]);
+    });
 
     this.xAxisData.set(xAxis);
     this.yAxisSeries.set(yAxis);
@@ -76,9 +85,9 @@ export class DashboardComponent {
   }
 
   getData(): void {
-    const { startDate, endDate, parameter } = this.filters;
-    if (parameter) {
-      this.dataService.get_by_parameter(parameter, startDate, endDate);
+    const { startDate, endDate, parameters } = this.filters;
+    if (parameters && parameters.length) {
+      this.dataService.get_by_parameter(parameters, startDate, endDate);
     } else {
       this.dataService.get_by_date_range(startDate, endDate);
     }

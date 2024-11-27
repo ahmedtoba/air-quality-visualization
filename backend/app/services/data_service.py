@@ -11,8 +11,8 @@ class AirQualityService:
     def __init__(self):
         self.repository = AirQualityRepository()
 
-    def get_by_parameter(self, parameter, start_date, end_date):
-        return self.repository.find_by_parameter(parameter, start_date, end_date)
+    def get_by_parameters(self, parameters: list[str], start_date: datetime, end_date: datetime) -> list[dict]: 
+        return self.repository.find_by_parameters(parameters, start_date, end_date)
     
     def get_by_date_range(self, start_date, end_date):
         logger.info(f"Getting data from {start_date} to {end_date}")
