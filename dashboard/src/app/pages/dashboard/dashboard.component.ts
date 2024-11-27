@@ -4,7 +4,6 @@ import { ChartComponent } from "../../components/chart/chart.component";
 import { CommonModule } from '@angular/common';
 import { AirQualityData } from '../../models/air-quality-data.model';
 import { DataServiceService } from '../../services/data-service.service';
-import { provideNativeDateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,9 +14,6 @@ import { provideNativeDateAdapter } from '@angular/material/core';
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
-  providers: [
-    provideNativeDateAdapter(),
-  ],
 })
 export class DashboardComponent {
   parameters = ['CO_GT', 'PT08_S1_CO', 'NMHC_GT', 'C6H6_GT', 'PT08_S2_NMHC', 'NOX_GT', 'PT08_S3_NOx', 'NO2_GT', 'PT08_S4_NO2', 'PT08_S5_O3', 'T', 'RH', 'AH'];
